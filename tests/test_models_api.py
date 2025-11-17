@@ -350,3 +350,37 @@ class TestModelsProviderAvailability:
         # Should support only text_to_speech
         supported = data["supported_types"]["openai-compatible"]
         assert supported == ["text_to_speech"]
+
+    @patch("api.routers.models.os.environ.get")
+    @patch("api.routers.models.AIFactory.get_available_providers")
+    def test_custom_ai_provider(self, mock_esperanto, mock_env, client):
+        """Test that CUSTOM_AI_API_KEY and CUSTOM_AI_API_BASE enables the custom_ai provider."""
+
+        # Mock environment: only custom_ai vars are set
+        def env_side_effect(key):
+            if key == "CUSTOM_AI_API_KEY":
+                return "test_key"
+            if key == "CUSTOM_AI_API_BASE":
+                return "http://localhost:1234/v1"
+            return None
+
+        mock_env.side_effect = env_side_effect
+
+        # Mock Esperanto response
+        mock_esperanto.return_value = {
+            "language": ["custom_ai"],
+        }
+
+        response = client.get("/api/models/providers")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        # custom_ai should be available
+        assert "custom_ai" in data["available"]
+
+        # Should support language
+        assert "custom_ai" in data["supported_types"]
+        supported = data["supported_types"]["custom_ai"]
+        assert "language" in supported
+        assert len(supported) == 1

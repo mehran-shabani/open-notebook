@@ -245,6 +245,10 @@ async def get_provider_availability():
             ),
             "mistral": os.environ.get("MISTRAL_API_KEY") is not None,
             "deepseek": os.environ.get("DEEPSEEK_API_KEY") is not None,
+            "custom_ai": (
+                os.environ.get("CUSTOM_AI_API_KEY") is not None
+                and os.environ.get("CUSTOM_AI_API_BASE") is not None
+            ),
             "openai-compatible": (
                 _check_openai_compatible_support("LLM")
                 or _check_openai_compatible_support("EMBEDDING")
